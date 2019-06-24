@@ -1,0 +1,6 @@
+/target
+raspi3_boot/target
+**/*.rs.bk
+/.vscode
+kernel8
+kernel8.img

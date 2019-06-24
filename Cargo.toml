@@ -1,0 +1,18 @@
+[package]
+name = "kernel8"
+version = "0.1.0"
+authors = ["Mateusz Hurbol <mateusz.hurbol42@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+raspi3_boot = { path = "raspi3_boot" }
+register = "0.3.2"
+lazy_static = "1.3.0"
+spin = "0.5"
+
+[features]
+default = ["lazy_static/spin_no_std"]
+
+
+[package.metadata.cargo-xbuild]
+sysroot_path = "../xbuild_sysroot"
