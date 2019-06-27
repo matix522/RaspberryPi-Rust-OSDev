@@ -1,23 +1,82 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
-
+//#![feature(panic_handler)]
+#![feature(core_panic_info)]
 //extern crate alloc;
-#[macro_use(lazy_static)]
-extern crate lazy_static;
-extern crate spin;
-
+/*#[macro_use(lazy_static)]
+extern crate lazy_static;*/
+//extern crate spin;
 
 const MMIO_BASE: u32 = 0x3F00_0000;
 
 mod gpio;
-mod uart;
-mod utils;
+mod io;
+mod kernel;
 mod random;
+mod utils;
 
-fn kernel_entry() -> ! {
+use core::panic;
+use io::{uart, Read, Write};
+use kernel::KernelBuilder;
+use utils::asm;
 
-    println!("BROS - Battle Royale Operating System"); 
+#[no_mangle] /*
+             #[panic_handler]
+             fn panic_handler2(panic_info: &core::panic::PanicInfo) -> ! {
+                 eprintln!("{:?}", panic_info);
+                 loop {}
+             }
+             */
+fn kernel_setup() -> ! {
+    let uart = uart::MiniUart::new();
+    uart.init();
+    uart.put_string("UART: Cannot use println!\n");
+    let kernel = KernelBuilder::new()
+        .with_stdio(uart)
+        .of_name("BROS - Battle Royale Operating System")
+        .version(0, 0, 1)
+        .build();
+    let k = kernel::get_kernel_ref();
+    uart.put_string("UART: Can use println!\n");
+    println!("println: {}", " Hello from println!");
+    panic!();
+    //k.get_stdio().put_string(k.get_name());
+    let version = k.get_version();
+    println!(
+        "{} - version {}.{}.{}",
+        k.get_name(),
+        version.0,
+        version.1,
+        version.2
+    );
+
+    loop {
+        println!("Enter a number: ");
+        match scanln!(f64).0 {
+            Some(f) => println!("You have entered: {}", f),
+            _ => println!("that was not a number :("),
+        }
+    }
+    /*
+    utils::delay(1000);
+    uart.puts("\n first line\n");
+        utils::delay(1000);
+    uart.puts("\n second line\n");
+
+    loop {
+        let c = uart.getc();
+        let c1 = (c as u8 + 2) as char;
+        uart.send(c);
+        utils::delay(100);
+        uart.send(c);
+        utils::delay(100);
+        uart.send(c1);
+        utils::delay(100);
+        uart.send(c1);
+    }*/
+    /*
+    println!("BROS - Battle Royale Operating System");
 
     println!("Working at exception level: {:?}", utils::get_excception_level());
 
@@ -47,7 +106,7 @@ fn kernel_entry() -> ! {
         else {
             println!("Incorect input format.");
         }
-    }
+    }*/
 }
 
-raspi3_boot::entry!(kernel_entry);
+raspi3_boot::entry!(kernel_setup);

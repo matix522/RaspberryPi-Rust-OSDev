@@ -10,6 +10,7 @@ register_bitfields! {
         FSEL15 OFFSET(15) NUMBITS(3) [
             Input = 0b000,
             Output = 0b001,
+            RXD0 = 0b100, // UART0     - Alternate function 0
             RXD1 = 0b010  // Mini UART - Alternate function 5
 
         ],
@@ -18,6 +19,7 @@ register_bitfields! {
         FSEL14 OFFSET(12) NUMBITS(3) [
             Input = 0b000,
             Output = 0b001,
+            TXD0 = 0b100, // UART0     - Alternate function 0
             TXD1 = 0b010  // Mini UART - Alternate function 5
         ]
     ],

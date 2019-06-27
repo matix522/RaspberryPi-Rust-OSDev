@@ -13,6 +13,11 @@ spin = "0.5"
 [features]
 default = ["lazy_static/spin_no_std"]
 
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
 
 [package.metadata.cargo-xbuild]
 sysroot_path = "../xbuild_sysroot"

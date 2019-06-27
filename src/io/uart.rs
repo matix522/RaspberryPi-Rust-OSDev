@@ -1,11 +1,12 @@
 
-use super::MMIO_BASE;
+use crate::MMIO_BASE;
 use crate::gpio;
 use core::ops;
 use register::{mmio::*, register_bitfields};
 use core::fmt;
 
 use crate::utils::*;
+use super::*;
 // Auxilary mini UART registers
 
 register_bitfields! {
@@ -95,51 +96,8 @@ pub struct RegisterBlock {
     __reserved_3: u32,                                  // 0x64
     AUX_MU_BAUD: WriteOnly<u32, AUX_MU_BAUD::Register>, // 0x68
 }
-
+#[derive(Copy,Clone)]
 pub struct MiniUart;
-
-lazy_static! {
-    pub static ref UART1: spin::Mutex<MiniUart> = {
-        let mut uart1 = MiniUart;
-        uart1.init();
-        spin::Mutex::new(uart1)
-    };
-}
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => ($crate::uart::_print(format_args!($($arg)*)));
-}
-
-#[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
-}
-#[macro_export]
-macro_rules! scan {
-    ( $string:expr, $sep:expr, $( $x:ty ),+ ) => {{
-        let mut iter = $string.split($sep);
-        ($(iter.next().and_then(|word| word.parse::<$x>().ok()),)*)
-    }}
-}
-#[macro_export]
-macro_rules! scanln {
-    ($( $x:ty ),+ ) => {{
-        let res;
-        unsafe { 
-            res = crate::uart::UART1.lock().get_line(); 
-        };
-        let string = core::str::from_utf8( &res.1).unwrap();
-        let mut iter = string.split_ascii_whitespace();
-        ($(iter.next().and_then(|word| word.parse::<$x>().ok()),)*)
-    }}
-}
-
-#[doc(hidden)]
-pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
-    unsafe { UART1.lock().write_fmt(args).unwrap() };
-}
 
 impl ops::Deref for MiniUart {
     type Target = RegisterBlock;
@@ -149,15 +107,8 @@ impl ops::Deref for MiniUart {
     }
 }
 
-impl fmt::Write for MiniUart {
-        fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.puts(s);
-        Ok(())
-    }
-}
-
 impl MiniUart {
-    fn new() -> MiniUart {
+    pub fn new() -> MiniUart {
         MiniUart
     }
 
@@ -167,7 +118,7 @@ impl MiniUart {
     }
 
     ///Set baud rate and characteristics (115200 8N1) and map to GPIO
-    fn init(&self) {
+    pub fn init(&self) {
         // initialize UART
         self.AUX_ENABLES.modify(AUX_ENABLES::MINI_UART_ENABLE::SET);
         self.AUX_MU_IER.set(0);
@@ -198,23 +149,13 @@ impl MiniUart {
         self.AUX_MU_CNTL
             .write(AUX_MU_CNTL::RX_EN::Enabled + AUX_MU_CNTL::TX_EN::Enabled);
     }
+}
 
-    /// Send a character
-    pub fn send(&self, c: char) {
-        // wait until we can send
-        loop {
-            if self.AUX_MU_LSR.is_set(AUX_MU_LSR::TX_EMPTY) {
-                break;
-            }
-            asm::nop();
-        }
 
-        // write the character to the buffer
-        self.AUX_MU_IO.set(c as u32);
-    }
+impl Read for MiniUart {
 
     /// Receive a character
-    pub fn getc(&self) -> char {
+    fn get_char(&self) -> Option<char> {
         // wait until something is in the buffer
         loop {
             if self.AUX_MU_LSR.is_set(AUX_MU_LSR::DATA_READY) {
@@ -231,30 +172,50 @@ impl MiniUart {
             ret = '\n'
         }
 
-        ret
+        Some(ret)
     }
-    pub fn get_line(&self) -> (usize, [u8;128]) {
+    fn get_line(&self) -> (usize, [u8;128]) {
         let mut s : [u8;128]= [10; 128];
         for i in 0..127 {
-            s[i] = self.getc() as u8;
-            self.send(s[i] as char);
+            s[i] = self.get_char().unwrap() as u8;
+            self.put_char(s[i] as char).unwrap();
             if s[i] == 10 {
                 return (i,s)
             }
         }
-        self.send('\n');
+        self.put_char('\n').unwrap();
         return (127,s)
     }
 
-    /// Display a string
-    pub fn puts(&self, string: &str) {
+
+}
+impl Write for MiniUart {
+     /// Send a character
+    fn put_char(&self, c: char) -> Result<(),WriteError> {
+        // wait until we can send
+        loop {
+            if self.AUX_MU_LSR.is_set(AUX_MU_LSR::TX_EMPTY) {
+                break;
+            }
+            asm::nop();
+        }
+
+        // write the character to the buffer
+        self.AUX_MU_IO.set(c as u32);
+        Ok(())
+    }
+        /// Display a string
+    fn put_string(&self, string: &str)-> Result<(),WriteError> {
         for c in string.chars() {
+            crate::utils::delay(100);
             // convert newline to carrige return + newline
             if c == '\n' {
-                self.send('\r')
+                self.put_char('\r')?;
             }
 
-            self.send(c);
+            self.put_char(c)?;
         }
+        Ok(())
     }
+
 }

@@ -1,4 +1,5 @@
 /target
+/builds
 raspi3_boot/target
 **/*.rs.bk
 /.vscode
