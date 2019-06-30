@@ -1,5 +1,5 @@
 
-use crate::MMIO_BASE;
+use crate::memory::physical::MINI_UART_BASE;
 use crate::gpio;
 use core::ops;
 use register::{mmio::*, register_bitfields};
@@ -77,8 +77,6 @@ register_bitfields! {
     ]
 }
 
-const MINI_UART_BASE: u32 = MMIO_BASE + 0x21_5000;
-
 #[allow(non_snake_case)]
 #[repr(C)]
 pub struct RegisterBlock {
@@ -131,19 +129,24 @@ impl MiniUart {
 
         // map UART1 to GPIO pins
         unsafe {
-            (*gpio::GPFSEL1).modify(gpio::GPFSEL1::FSEL14::TXD1 + gpio::GPFSEL1::FSEL15::RXD1);
+            (*gpio::GPIO_FUCNTION_SELECT_1)
+                .modify(
+                    gpio::GPIO_FUCNTION_SELECT_1::PIN_14::TXD1
+                  + gpio::GPIO_FUCNTION_SELECT_1::PIN_15::RXD1);
 
-            (*gpio::GPPUD).set(0); // enable pins 14 and 15
+            (*gpio::GPIO_PULL_UP_DOWN).set(0); // enable pins 14 and 15
             
             delay(150);
 
-            (*gpio::GPPUDCLK0).write(
-                gpio::GPPUDCLK0::PUDCLK14::AssertClock + gpio::GPPUDCLK0::PUDCLK15::AssertClock,
+            (*gpio::GPIO_PULL_UP_DOWN_CLOCK_0)
+                .write(
+                    gpio::GPIO_PULL_UP_DOWN_CLOCK_0::PIN_14::AssertClock
+                  + gpio::GPIO_PULL_UP_DOWN_CLOCK_0::PIN_15::AssertClock,
             );
 
             delay(150);
 
-            (*gpio::GPPUDCLK0).set(0);
+            (*gpio::GPIO_PULL_UP_DOWN_CLOCK_0).set(0);
         }
 
         self.AUX_MU_CNTL

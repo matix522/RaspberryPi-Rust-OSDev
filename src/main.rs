@@ -1,33 +1,20 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
-//#![feature(panic_handler)]
-#![feature(core_panic_info)]
 //extern crate alloc;
-/*#[macro_use(lazy_static)]
-extern crate lazy_static;*/
-//extern crate spin;
-
-const MMIO_BASE: u32 = 0x3F00_0000;
 
 mod gpio;
 mod io;
 mod kernel;
+mod memory;
 mod random;
 mod utils;
 
-use core::panic;
 use io::{uart, Read, Write};
 use kernel::KernelBuilder;
 use utils::asm;
 
-#[no_mangle] /*
-             #[panic_handler]
-             fn panic_handler2(panic_info: &core::panic::PanicInfo) -> ! {
-                 eprintln!("{:?}", panic_info);
-                 loop {}
-             }
-             */
+#[no_mangle]
 fn kernel_setup() -> ! {
     let uart = uart::MiniUart::new();
     uart.init();
@@ -50,7 +37,6 @@ fn kernel_setup() -> ! {
         version.1,
         version.2
     );
-
     loop {
         println!("Enter a number: ");
         match scanln!(f64).0 {

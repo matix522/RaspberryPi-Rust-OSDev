@@ -1,7 +1,7 @@
-use super::MMIO_BASE;
-use register::{mmio::*,register_bitfields};
-use core::ops::Deref;
+use crate::memory::physical::RNG_BASE;
 use crate::utils::asm;
+use core::ops::Deref;
+use register::{mmio::*, register_bitfields};
 register_bitfields! {
     u32,
     CONTROL [
@@ -18,13 +18,12 @@ register_bitfields! {
     ]
 }
 
-const RANDOM_NUMER_GENERATOR_BASE: u32 = MMIO_BASE + 0x104_000;
 const RANDOM_NUMER_GENERATOR_WARMUP_COUNT: u32 = 0x40_000;
 
 #[allow(non_snake_case)]
 #[repr(C)]
 pub struct RegisterBlock {
-    CONTROL: ReadWrite<u32, CONTROL::Register>,         // 0x00
+    CONTROL: ReadWrite<u32, CONTROL::Register>,   // 0x00
     STATUS: ReadWrite<u32>,                       // 0x04
     DATA: ReadOnly<u32>,                          // 0x08
     __reserved_0: u32,                            // 0x0c
@@ -48,7 +47,7 @@ impl RandomNumberGenerator {
 
     /// Returns a pointer to the register block
     fn ptr() -> *const RegisterBlock {
-        RANDOM_NUMER_GENERATOR_BASE as *const _
+        RNG_BASE as *const _
     }
 
     /// Initialize the RNG
