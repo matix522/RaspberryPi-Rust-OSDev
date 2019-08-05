@@ -27,7 +27,7 @@ fn kernel_setup() -> ! {
     let k = kernel::get_kernel_ref();
     uart.put_string("UART: Can use println!\n");
     println!("println: {}", " Hello from println!");
-    panic!();
+    //panic!();
     //k.get_stdio().put_string(k.get_name());
     let version = k.get_version();
     println!(
