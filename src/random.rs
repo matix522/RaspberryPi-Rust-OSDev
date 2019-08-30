@@ -74,6 +74,9 @@ impl RandomNumberGenerator {
         if r < 0 {
             r = -r;
         }
+        if min == max {
+            return min;
+        }
         r % (max - min) + min
     }
 }

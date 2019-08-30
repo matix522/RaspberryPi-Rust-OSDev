@@ -3,7 +3,6 @@ use crate::memory::physical::MINI_UART_BASE;
 use crate::gpio;
 use core::ops;
 use register::{mmio::*, register_bitfields};
-use core::fmt;
 
 use crate::utils::*;
 use super::*;
@@ -168,14 +167,15 @@ impl Read for MiniUart {
         }
 
         // read it and return
-        let mut ret = self.AUX_MU_IO.get() as u8 as char;
+        let ret = self.AUX_MU_IO.get() as u8 as char;
 
         // convert carrige return to newline
-        if ret == '\r' {
-            ret = '\n'
+        match ret {
+            '\r' => Some('\n'),
+            '\x08' => Some('\x08'),
+            
+            ret => Some(ret)
         }
-
-        Some(ret)
     }
     fn get_line(&self) -> (usize, [u8;128]) {
         let mut s : [u8;128]= [10; 128];
@@ -209,7 +209,8 @@ impl Write for MiniUart {
     }
         /// Display a string
     fn put_string(&self, string: &str)-> Result<(),WriteError> {
-        for c in string.chars() {
+        for c in string.bytes() {
+            let c = c as char; // TODO better 
             crate::utils::delay(100);
             // convert newline to carrige return + newline
             if c == '\n' {

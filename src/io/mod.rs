@@ -5,8 +5,7 @@ use core::fmt;
 #[derive(Clone, Copy)]
 pub enum KernelStdio {
     MiniUart(uart::MiniUart),
-    None,
-    Df,
+    None
 }
 
 impl Read for KernelStdio {
@@ -43,7 +42,7 @@ impl Write for KernelStdio {
 }
 impl fmt::Write for KernelStdio {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.put_string(s);
+        self.put_string(s).unwrap();
         Ok(())
     }
 }
@@ -58,7 +57,7 @@ pub trait Write {
 
 #[derive(Debug)]
 pub enum WriteError {
-    UnexpectedError,
+    
 }
 
 #[macro_export]
@@ -83,20 +82,20 @@ macro_rules! eprintln {
 
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    unsafe {
-        let mut stdio = kernel::get_kernel_ref().get_stdio();
-        stdio.write_fmt(args).unwrap();
-    }
+    
+    let mut stdio = kernel::get_kernel_ref().get_stdio();
+    stdio.write_fmt(args).unwrap();
 }
 
 #[macro_export]
 macro_rules! scanln {
     ($( $x:ty ),+ ) => {{
+        print!("\x1B[38;2;100;255;255m(No Filesystem  )/ \x1B[38;2;200;255;100m❯\x1B[0m");
         let res;
-        unsafe {
-            let mut stdio = kernel::get_kernel_ref().get_stdio();
-            res = stdio.get_line();
-        };
+
+        let stdio = kernel::get_kernel_ref().get_stdio();
+        res = stdio.get_line();
+        
         let string = core::str::from_utf8( &res.1).unwrap();
         let mut iter = string.split_ascii_whitespace();
         ($(iter.next().and_then(|word| word.parse::<$x>().ok()),)*)

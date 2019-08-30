@@ -49,3 +49,9 @@ pub fn get_excception_level() -> ExceptionLevel {
         _ => Error
     }
 }
+#[macro_export]
+macro_rules! bitmask {
+    ($name:ident, $mask:expr) => {
+        $name if $name & $mask == $mask
+    };
+}

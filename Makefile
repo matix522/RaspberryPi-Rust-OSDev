@@ -51,7 +51,7 @@ kernel8.img: $(CARGO_OUTPUT)
 	cp $< .
 	$(OBJCOPY) $(OBJCOPY_PARAMS) $< kernel8.img
 
-qemu: all
+qemu: 
 	$(DOCKER_CMD) $(DOCKER_ARG_CURDIR) $(CONTAINER_UTILS) \
 	$(DOCKER_EXEC_QEMU) -serial null -serial stdio
 
@@ -60,6 +60,7 @@ clippy:
 
 clean:
 	cargo clean
+	echo "$(SOURCES)"
 
 objdump:
 	cargo objdump --target $(TARGET) -- -disassemble -print-imm-hex kernel8

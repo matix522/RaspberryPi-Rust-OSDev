@@ -36,12 +36,6 @@ impl KernelBuilder {
     //pub fn with_allocator(allocator : &'static dyn GlobalAlocator){
     //
     //}
-    pub fn with_memory_menagment_unit() {
-        unimplemented!();
-    }
-    pub fn with_random_number_generator() {
-        unimplemented!();
-    }
     pub fn of_name(mut self, s: &str) -> KernelBuilder {
         if s.len() > 0 {
             let (base, _) = s.char_indices().next().unwrap();
