@@ -17,10 +17,10 @@ pub mod map {
     pub const MEMORY_START:                   usize =             0x0000_0000;
     pub const MEMORY_END:                     usize =             0x3FFF_FFFF;
     pub mod physical {
-        #[cfg(raspi4)]
+        // #[cfg(raspi4)]
+        //pub const MMIO_BASE:           usize =  0x7E00_0000;
+        // #[cfg(not(raspi4))]
         pub const MMIO_BASE:           usize =  0xEF00_0000;
-        #[cfg(not(raspi4))]
-        pub const MMIO_BASE:           usize =  0x3F00_0000;
 
         //pub const VIDEOCORE_MBOX_BASE: usize = MMIO_BASE + 0x0000_B880;
         pub const RNG_BASE:            usize = MMIO_BASE + 0x0010_4000;

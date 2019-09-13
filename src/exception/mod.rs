@@ -141,7 +141,7 @@ const TIMER_INTERVAL : u32 = 20_000;
 
 #[no_mangle]
 unsafe extern "C" fn current_elx_irq(e: &mut ExceptionContext) {
-    println!("[!] IRQ Interupt");
+    //println!("[!] IRQ Interupt");
 
     if Irq.IRQ_PENDING_1.read(IRQ_PENDING_1::TIMER_LINE_1) != 0 {
 
@@ -154,7 +154,7 @@ unsafe extern "C" fn current_elx_irq(e: &mut ExceptionContext) {
         ArmQemuTimer::disable();
         ArmQemuTimer::interupt_after(ArmQemuTimer::get_frequency());
         ArmQemuTimer::enable();
-        println!("Time since boot: {} seconds", ArmQemuTimer::get_time() / (ArmQemuTimer::get_frequency() + 1) as u64);
+        //println!("Time since boot: {} seconds", ArmQemuTimer::get_time() / (ArmQemuTimer::get_frequency() + 1) as u64);
     }
 }
 impl SystemTimer {
