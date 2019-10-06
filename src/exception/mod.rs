@@ -38,7 +38,7 @@ pub struct ExceptionContext {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn default_exception_handler() {
+pub unsafe extern "C" fn default_exception_handler(_: &mut ExceptionContext) {
     let esr : usize;
     let address: usize; 
     asm!("mrs $0, esr_el1" : "=r"(esr) : : : "volatile");
@@ -125,12 +125,12 @@ impl ops::Deref for Irq {
     }
 }
 impl Irq {
-    #[inline]
+    #[inline(always)]
     #[naked]
     pub fn enable() {
         unsafe { asm!("msr daifclr, #2" : : : : "volatile"); }
     }
-    #[inline]
+    #[inline(always)]
     #[naked]
     pub fn disable() {
         unsafe { asm!("msr daifset, #2" : : : : "volatile"); }

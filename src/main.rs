@@ -61,12 +61,7 @@ fn kernel_setup() -> ! {
 
     let rand = random::RandomNumberGenerator::new();
     rand.init();
-    //println!("Currently randomizing nummbers!");
-    //println!("Before Exception");
-   /* let big_addr: u64 = 3 * 1024 * 1024 * 1024;
-    unsafe { core::ptr::read_volatile(big_addr as *mut u64) };*/
-    //println!("After Exception");
-    //println!("{}", "Ten tekst tylko ze bez bialych znakow " );
+
     exception::timer::ArmQemuTimer::enable();
     exception::timer::ArmQemuTimer::interupt_after(exception::timer::ArmQemuTimer::get_frequency());
 
